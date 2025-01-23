@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "discord.js": "^14.17.3",
+    "express": "^4.21.2"
+  },
+  "name": "discordboot",
+  "version": "1.0.0",
+  "description": "Boot de discord para notifações via telegram para atualizar animes",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Matheus Rodolpho",
+  "license": "ISC"
+}
