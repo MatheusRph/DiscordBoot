@@ -17,21 +17,34 @@ module.exports = {
 
             if (message.channel.id === channel.id) {
 
-                const channelId = '1330240912780955820'; 
+
+                const channelId = '1330240912780955820';
                 const targetChannel = interaction.client.channels.cache.get(channelId);
 
                 if (targetChannel) {
-                    
-                    if (message.embeds.length > 0) {
-                        
-                        console.log("A mensagem contém um embed. Enviando para outro canal.");
 
-                        
-                        targetChannel.send("Fazendo requisição ao MAL");
+                    targetChannel.send('Chegou uma mensagem!');
+
+                    if (message.embeds.length > 0) {
+
+                        targetChannel.send('A mensagem contem um embed...')
+
+                        message.embeds.forEach(embed => {
+                            targetChannel.send({ embeds: [embed] });
+                        });
+                        targetChannel.send('Inciando processos...')
+                        targetChannel.send("Fazendo requisição ao My Anime List!");
+
 
                         const animeUrl = message.embeds[0].url;
-
                         const animeDiscord = message.embeds[0].title;
+
+                        console.log('Title', animeDiscord);
+
+                        for (let x = 0; x < message.embeds.length; x++) {
+                            const testeTitle = message.embeds[x].title;
+                            console.log('Title do embed' + x, testeTitle);
+                        }
 
                         const regex = /(.*?)\s*(?:\((.*?)\))?\s*- Episódio (\d+)/;
 
@@ -49,9 +62,14 @@ module.exports = {
                             const reqmal = await getAnimeList(nomeAnimeSemParenteses, animeUrl);
 
                             if (reqmal.success) {
-                                const malData = reqmal.data; 
+                                const malData = reqmal.data;
 
                                 malChat.send("Requisição ao Mal feita com sucesso")
+
+                                const telegId = '1330333151163187220'
+                                const telegChat = interaction.client.channels.cache.get(telegId);
+
+                                const foundMatch = false;
 
                                 for (let x = 0; x < malData.data.length; x++) {
 
@@ -61,22 +79,26 @@ module.exports = {
                                     const similarityPercentage = (1 - (lev.distance / Math.max(nomeAnimeSemParenteses.length, animeTitle.length))) * 100;
 
                                     if (similarityPercentage >= 80) {
-                                        
-                                        const telegId = '1330333151163187220'
-                                        const telegChat = interaction.client.channels.cache.get(telegId);
+
                                         try {
                                             const telgReq = await sendTelegMessage(animeTitle, animeUrl);
 
                                             if (telgReq.success) {
-                                                telegChat.send('Mensagem de notificação enviada ao Telegram!')
+                                                telegChat.send(`Mensagem de notificação para ${animeTitle} enviada ao Telegram!`);
+                                                foundMatch = true; // Marca que encontramos uma correspondência
+                                                break; // Interrompe o loop assim que encontra a primeira correspondência
                                             } else {
-                                                telegChat.send('Mensagem não enviada ao telegram!')
+                                                telegChat.send(`Mensagem para ${animeTitle} não enviada ao Telegram!`)
                                             }
                                         } catch (error) {
                                             malChat.send("Falha na requisição ao Telegram");
                                             console.log('Error ao fazer requisição ao Telegram', error);
                                         }
                                     }
+                                } if (!foundMatch) {
+                                    const telegId = '1330333151163187220';
+                                    const telegChat = interaction.client.channels.cache.get(telegId);
+                                    telegChat.send('O anime não foi encontrado na lista, notificação não necessária.');
                                 }
 
                             } else {
@@ -88,16 +110,17 @@ module.exports = {
                             console.log('Error ao fazer requisição ao mal', error);
                         }
                     } else {
-                        
-                        console.log(`${message.content}`);
 
-                        
-                        targetChannel.send(message.content);
+                        targetChannel.send('A mensagem não é um embed, não a necessidade de processos!');
                     }
+                } else {
+
+                    console.log('ChatId não existente!');
+
                 }
 
             }
-        };        
+        };
         interaction.client.on('messageCreate', messageListener);
     },
 };
